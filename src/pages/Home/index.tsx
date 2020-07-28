@@ -5,13 +5,14 @@ import { confirmAlert } from 'react-confirm-alert';
 import api from '../../services/api';
 import { useAuth } from '../../hooks/auth';
 
+import SearchBar from '../../components/SearchBar';
+
 import {
   Container,
-  Header,
   Toolbar,
-  SearchBar,
   Button,
   List,
+  Header,
   ToolCard,
   TagsContainer,
 } from './styles';
@@ -92,13 +93,11 @@ const Home: React.FC = () => {
         <h3>Very Useful Tools to Remember</h3>
 
         <Toolbar>
-          <SearchBar>
-            <input
-              type="text"
-              placeholder="Buscar por tag (ex: #node)"
-              value={searchText}
-            />
-          </SearchBar>
+          <SearchBar
+            value={searchText}
+            placeholder="Buscar por tag (ex: #node)"
+            onChange={e => setSearchText(e.target.value)}
+          />
 
           <Button type="button" primaryNeutral>
             <BsPlus />
