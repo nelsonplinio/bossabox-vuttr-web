@@ -6,11 +6,11 @@ import api from '../../services/api';
 import { useAuth } from '../../hooks/auth';
 
 import SearchBar from '../../components/SearchBar';
+import Button from '../../components/Button';
 
 import {
   Container,
   Toolbar,
-  Button,
   List,
   Header,
   ToolCard,
