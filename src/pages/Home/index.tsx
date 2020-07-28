@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BsPlus } from 'react-icons/bs';
+import { confirmAlert } from 'react-confirm-alert';
 
 import api from '../../services/api';
-
-import iconClose from '../../assets/icons/Icon-Close-2px.svg';
+import { useAuth } from '../../hooks/auth';
 
 import {
   Container,
@@ -39,10 +39,6 @@ const Home: React.FC = () => {
 
       const response = await api.get('/tools', {
         params: { tag },
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1OTU5MDYxODgsImV4cCI6MTU5NTk5MjU4OCwic3ViIjoiNWYxYjQ1NmVlZTJhODcwYzdjOTdkYjk3In0.wwKXSwK1ZvnOhkNOzb0E3ijStCdw8O6Kwtkb6CVSf6g',
-        },
       });
 
       setTools(response.data);
@@ -57,6 +53,36 @@ const Home: React.FC = () => {
     },
     [setSearchText],
   );
+
+  const handleRemoveTool = useCallback((tool: Tool) => {
+    confirmAlert({
+      title: 'Remover ferramente',
+      message: `Deseja remover a ferramenta "${tool.title}"?`,
+      buttons: [
+        {
+          label: 'Cancelar',
+          onClick: () => {
+            // Cancelar
+          },
+        },
+        {
+          label: 'Remover',
+
+          onClick: async () => {
+            try {
+              await api.delete(`/tools/${tool.id}`);
+
+              setTools(currentValue =>
+                currentValue.filter(({ id }) => id !== tool.id),
+              );
+            } catch {
+              // TODO Fazer alguma coisa aqui para mostar
+            }
+          },
+        },
+      ],
+    });
+  }, []);
 
   return (
     <Container>
@@ -91,7 +117,11 @@ const Home: React.FC = () => {
                 </a>
               </h4>
 
-              <Button type="button" quartiaryDanger>
+              <Button
+                type="button"
+                quartiaryDanger
+                onClick={() => handleRemoveTool(tool)}
+              >
                 Remover
               </Button>
             </div>

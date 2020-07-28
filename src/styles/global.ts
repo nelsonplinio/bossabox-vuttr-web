@@ -1,4 +1,5 @@
 import { createGlobalStyle } from 'styled-components';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 
 export default createGlobalStyle`
   * {
