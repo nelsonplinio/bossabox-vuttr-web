@@ -3,10 +3,10 @@ import { BsPlus } from 'react-icons/bs';
 import { confirmAlert } from 'react-confirm-alert';
 
 import api from '../../services/api';
-import { useAuth } from '../../hooks/auth';
 
 import SearchBar from '../../components/SearchBar';
 import Button from '../../components/Button';
+import AddNewToolModal from '../../components/AddNewToolModal';
 
 import {
   Container,
@@ -28,25 +28,22 @@ interface Tool {
 const Home: React.FC = () => {
   const [tools, setTools] = useState<Tool[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [isOpenModal, setIsOpenModal] = useState(false);
 
-  useEffect(() => {
-    const loadTools = async () => {
-      let tag: string | undefined;
+  const loadTools = useCallback(async (search: string) => {
+    let tag: string | undefined;
 
-      if (searchText.includes('#')) {
-        const [, tagFound] = searchText.split('#');
-        tag = tagFound;
-      }
+    if (search.includes('#')) {
+      const [, tagFound] = search.split('#');
+      tag = tagFound;
+    }
 
-      const response = await api.get('/tools', {
-        params: { tag },
-      });
+    const response = await api.get('/tools', {
+      params: { tag },
+    });
 
-      setTools(response.data);
-    };
-
-    loadTools();
-  }, [searchText]);
+    setTools(response.data);
+  }, []);
 
   const handleSelectTag = useCallback(
     (tag: string) => {
@@ -54,6 +51,10 @@ const Home: React.FC = () => {
     },
     [setSearchText],
   );
+
+  const handleAddNewTool = useCallback(() => {
+    setIsOpenModal(true);
+  }, []);
 
   const handleRemoveTool = useCallback((tool: Tool) => {
     confirmAlert({
@@ -85,6 +86,23 @@ const Home: React.FC = () => {
     });
   }, []);
 
+  const handleIsOpenModal = useCallback(() => {
+    setIsOpenModal(currentValue => !currentValue);
+  }, [setIsOpenModal]);
+
+  const handleOnCompleted = useCallback(() => {
+    if (searchText) {
+      setSearchText('');
+      return;
+    }
+
+    loadTools(searchText);
+  }, [searchText, loadTools]);
+
+  useEffect(() => {
+    loadTools(searchText);
+  }, [searchText, loadTools]);
+
   return (
     <Container>
       <Header>
@@ -99,7 +117,7 @@ const Home: React.FC = () => {
             onChange={e => setSearchText(e.target.value)}
           />
 
-          <Button type="button" primaryNeutral>
+          <Button type="button" primaryNeutral onClick={handleAddNewTool}>
             <BsPlus />
             Adicionar
           </Button>
@@ -145,6 +163,12 @@ const Home: React.FC = () => {
           </ToolCard>
         ))}
       </List>
+
+      <AddNewToolModal
+        isOpen={isOpenModal}
+        setIsOpen={handleIsOpenModal}
+        onCompleted={handleOnCompleted}
+      />
     </Container>
   );
 };
