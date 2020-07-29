@@ -1,9 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Form } from '@unform/web';
+import { FormHandles } from '@unform/core';
 import { BsX } from 'react-icons/bs';
 import * as Yup from 'yup';
 
 import api from '../../services/api';
+import getValidationErrors from '../../utils/getValidationErrors';
 
 import Input from '../Input';
 import Modal from '../Modal';
@@ -28,9 +30,28 @@ const AddNewToolModal: React.FC<IModalProps> = ({
   setIsOpen,
   onCompleted,
 }) => {
+  const formRef = useRef<FormHandles>(null);
+
   const handleCreateNewTool = useCallback(
-    async ({ title, description, link, tags }: InputData) => {
+    async (formData: InputData) => {
+      formRef.current?.setErrors({});
       try {
+        const schemaValidation = Yup.object().shape({
+          title: Yup.string().required('Nome é necessario.'),
+          description: Yup.string().required('Descrição é necessario.'),
+          link: Yup.string().required('Link é necessario.'),
+          tags: Yup.string().required('Tags é necessario.'),
+        });
+
+        const {
+          title,
+          description,
+          link,
+          tags,
+        } = await schemaValidation.validate(formData, {
+          abortEarly: false,
+        });
+
         await api.post('/tools', {
           title,
           description,
@@ -39,8 +60,14 @@ const AddNewToolModal: React.FC<IModalProps> = ({
         });
 
         setIsOpen();
+
         onCompleted();
-      } catch {
+      } catch (error) {
+        if (error instanceof Yup.ValidationError) {
+          const validationErrors = getValidationErrors(error);
+          formRef.current?.setErrors(validationErrors);
+        }
+
         // TODO Fazer alguma coisa
       }
     },
@@ -57,7 +84,7 @@ const AddNewToolModal: React.FC<IModalProps> = ({
         </button>
       </Header>
 
-      <Form onSubmit={handleCreateNewTool}>
+      <Form ref={formRef} onSubmit={handleCreateNewTool}>
         <Input
           name="title"
           label="Nome"
